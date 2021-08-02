@@ -1,14 +1,14 @@
 /**
  * Basic authentication.
- * Disabled by default (Issue #29)
+ * Enabled by default, you need to set PASSWORD secret using `wrangler secret put AUTH_PASSWORD`
  *
- * AUTH_ENABLED   to enable auth set true
+ * AUTH_ENABLED   `false` to disable it
  * NAME           user name
- * PASS           password
+ * ENABLE_PATHS   enable protection on specific folders/files
  */
-export const AUTH_ENABLED = false
-export const NAME = 'admin'
-export const PASS = 'password'
+export const AUTH_ENABLED = true
+export const NAME = 'guest'
+export const ENABLE_PATHS = ['/🌞 Private folder/Private folder']
 
 /**
  * RegExp for basic auth credentials

@@ -120,16 +120,17 @@ function renderImage(file) {
  * Render video (mp4, flv, m3u8, webm ...)
  *
  * @param {Object} file Object representing the video to preview
+ * @param {string} fileExt The file extension parsed
  */
-function renderVideoPlayer(file) {
+function renderVideoPlayer(file, fileExt) {
   return `<div id="dplayer"></div>
           <script>
-          const dp = new DPlayer({
+          dp = new DPlayer({
             container: document.getElementById('dplayer'),
             theme: '#0070f3',
             video: {
               url: '${file['@microsoft.graph.downloadUrl']}',
-              type: 'auto'
+              type: '${fileExt}'
             }
           })
           </script>`
@@ -143,7 +144,7 @@ function renderVideoPlayer(file) {
 function renderAudioPlayer(file) {
   return `<div id="aplayer"></div>
           <script>
-          const ap = new APlayer({
+          ap = new APlayer({
             container: document.getElementById('aplayer'),
             theme: '#0070f3',
             audio: [{
@@ -171,7 +172,12 @@ function renderUnsupportedView(fileExt) {
  * @param {Object} file Object representing the file to preview
  * @param {string} fileExt The file extension parsed
  */
-async function renderPreview(file, fileExt) {
+async function renderPreview(file, fileExt, cacheUrl) {
+  if (cacheUrl) {
+    // This will change your download url too! (proxied download)
+    file['@microsoft.graph.downloadUrl'] = cacheUrl
+  }
+
   switch (extensions[fileExt]) {
     case preview.markdown:
       return await renderMarkdown(file['@microsoft.graph.downloadUrl'], '', 'style="margin-top: 0;"')
@@ -189,7 +195,7 @@ async function renderPreview(file, fileExt) {
       return renderPDFPreview(file)
 
     case preview.video:
-      return renderVideoPlayer(file)
+      return renderVideoPlayer(file, fileExt)
 
     case preview.audio:
       return renderAudioPlayer(file)
@@ -199,19 +205,19 @@ async function renderPreview(file, fileExt) {
   }
 }
 
-export async function renderFilePreview(file, path, fileExt) {
+export async function renderFilePreview(file, path, fileExt, cacheUrl) {
   const el = (tag, attrs, content) => `<${tag} ${attrs.join(' ')}>${content}</${tag}>`
   const div = (className, content) => el('div', [`class=${className}`], content)
 
   const body = div(
     'container',
     div('path', renderPath(path) + ` / ${file.name}`) +
-      div('items', el('div', ['style="padding: 1rem 1rem;"'], await renderPreview(file, fileExt))) +
+      div('items', el('div', ['style="padding: 1rem 1rem;"'], await renderPreview(file, fileExt, cacheUrl))) +
       div(
         'download-button-container',
         el(
           'a',
-          ['class="download-button"', `href="${file['@microsoft.graph.downloadUrl']}"`],
+          ['class="download-button"', `href="${file['@microsoft.graph.downloadUrl']}"`, 'data-turbolinks="false"'],
           '<i class="far fa-arrow-alt-circle-down"></i> DOWNLOAD'
         )
       )
